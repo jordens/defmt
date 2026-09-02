@@ -60,8 +60,10 @@ We have several packages which live in this repository. Changes are tracked sepa
 
 ### [defmt-next]
 
+* [#1091] Allow inner modules to decrease env filter verbosity
 * [#1089] Retain timestamp and bitflags metadata when linking without `defmt.x`.
 * [#1068] Adding `Format` impl for `core::str` errors
+* [#1096] Implement `Format` for `alloc` Errors
 
 ### [defmt-v1.1.1] (2026-06-26)
 
@@ -452,6 +454,8 @@ Initial release
 
 ### [defmt-macros-next]
 
+* [#1084] Report a format string that a future release will reject, such as `}{{}`, as a deprecation warning at the macro call site.
+
 ### [defmt-macros-v1.1.1] (2026-06-26)
 
 * [#1070] Swap from `proc-macro-error2` to `syn::Error`
@@ -714,6 +718,7 @@ Initial release
 ### [defmt-parser-next]
 
 * [#1083] A bitfield spec whose leading number is not followed by a complete `..end`, such as `{=8}` or `{=0.}`, now returns `Err(InvalidTypeSpecifier)` instead of panicking.
+* [#1084] Add `parse_with_warnings`, which reports the format strings that a future release will reject. A stray `}` in a literal that a later stray `}` cancels out, such as `}{{}`, is one: `format!` rejects it, so it warns with `Warning::UnmatchedCloseBracket` while still parsing as before.
 * [#956] Link `LICENSE-*` in the crate folder
 * [#1028] Clarify that MSRV is 1.76
 
@@ -1040,12 +1045,15 @@ Initial release
 
 ---
 
+[#1096]: https://github.com/knurling-rs/defmt/pull/1096
+[#1091]: https://github.com/knurling-rs/defmt/pull/1091
 [#1089]: https://github.com/knurling-rs/defmt/pull/1089
+[#1084]: https://github.com/knurling-rs/defmt/pull/1084
 [#1083]: https://github.com/knurling-rs/defmt/pull/1083
 [#1073]: https://github.com/knurling-rs/defmt/pull/1073
 [#1070]: https://github.com/knurling-rs/defmt/pull/1070
-[#1066]: https://github.com/knurling-rs/defmt/pull/1066
 [#1068]: https://github.com/knurling-rs/defmt/pull/1068
+[#1066]: https://github.com/knurling-rs/defmt/pull/1066
 [#1053]: https://github.com/knurling-rs/defmt/pull/1053
 [#1055]: https://github.com/knurling-rs/defmt/pull/1055
 [#1052]: https://github.com/knurling-rs/defmt/pull/1052
