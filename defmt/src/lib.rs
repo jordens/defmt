@@ -54,7 +54,7 @@ pub static DEFMT_ENCODING: u8 = 0;
 /// Decoders can compare this runtime address with the same symbol's ELF address
 /// to compute the process load bias.
 pub fn runtime_anchor() -> usize {
-    &DEFMT_ENCODING as *const u8 as usize
+    &DEFMT_VERSION as *const u8 as usize
 }
 
 mod encoding;

@@ -65,6 +65,7 @@ pub fn parse_impl(elf: &[u8], check_version: bool) -> Result<Option<Table>, anyh
                 ));
             }
             version = Some(new_version);
+            elf_address_anchor = Some(entry.address());
         }
 
         if let Some(new_encoding) = try_get_encoding(name) {
@@ -76,7 +77,6 @@ pub fn parse_impl(elf: &[u8], check_version: bool) -> Result<Option<Table>, anyh
                 ));
             }
             encoding = Some(new_encoding);
-            elf_address_anchor = Some(entry.address());
         }
     }
 
