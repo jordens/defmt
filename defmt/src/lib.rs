@@ -51,8 +51,8 @@ pub static DEFMT_ENCODING: u8 = 0;
 
 /// Returns the runtime address of a fixed defmt metadata symbol.
 ///
-/// Decoders can compare this runtime address with the same symbol's ELF address
-/// to compute the process load bias.
+/// Decoders can compare this runtime address with the same symbol's address in
+/// the linked image to compute the process load bias.
 pub fn runtime_anchor() -> usize {
     &DEFMT_VERSION as *const u8 as usize
 }
