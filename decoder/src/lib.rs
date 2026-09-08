@@ -160,7 +160,7 @@ pub struct Table {
     bitflags: HashMap<BitflagsKey, Vec<(String, u128)>>,
     encoding: Encoding,
     #[serde(default)]
-    image_address_anchor: Option<u64>,
+    image_anchor_address: Option<u64>,
     // Derived from `entries` and rebuilt when a serialized table is loaded.
     #[serde(skip)]
     u16_to_address: HashMap<u16, usize>,
@@ -173,7 +173,7 @@ struct SerializedTable {
     bitflags: HashMap<BitflagsKey, Vec<(String, u128)>>,
     encoding: Encoding,
     #[serde(default)]
-    image_address_anchor: Option<u64>,
+    image_anchor_address: Option<u64>,
 }
 
 impl<'de> Deserialize<'de> for Table {
@@ -187,7 +187,7 @@ impl<'de> Deserialize<'de> for Table {
             table.entries,
             table.bitflags,
             table.encoding,
-            table.image_address_anchor,
+            table.image_anchor_address,
         )
         .map_err(serde::de::Error::custom)
     }
@@ -205,7 +205,7 @@ impl Table {
         entries: BTreeMap<usize, TableEntry>,
         bitflags: HashMap<BitflagsKey, Vec<(String, u128)>>,
         encoding: Encoding,
-        image_address_anchor: Option<u64>,
+        image_anchor_address: Option<u64>,
     ) -> Result<Self, String> {
         let mut u16_to_address = HashMap::with_capacity(entries.len());
 
@@ -224,7 +224,7 @@ impl Table {
             entries,
             bitflags,
             encoding,
-            image_address_anchor,
+            image_anchor_address,
             u16_to_address,
         })
     }
@@ -334,7 +334,7 @@ impl Table {
         &self,
         runtime_anchor: u64,
     ) -> Option<DecodeContext> {
-        self.new_decode_context(runtime_anchor.wrapping_sub(self.image_address_anchor?))
+        self.new_decode_context(runtime_anchor.wrapping_sub(self.image_anchor_address?))
     }
 
     /// Decode the data sent by the device using a reusable decoding context.

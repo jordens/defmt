@@ -24,7 +24,7 @@ pub fn parse_impl(elf: &[u8], check_version: bool) -> Result<Option<Table>, anyh
     // first pass to extract the `_defmt_version`
     let mut version = None;
     let mut encoding = None;
-    let mut image_address_anchor = None;
+    let mut image_anchor_address = None;
 
     // Note that we check for a quoted and unquoted version symbol, since LLD has a bug that
     // makes it keep the quotes from the linker script.
@@ -65,7 +65,7 @@ pub fn parse_impl(elf: &[u8], check_version: bool) -> Result<Option<Table>, anyh
                 ));
             }
             version = Some(new_version);
-            image_address_anchor = Some(entry.address());
+            image_anchor_address = Some(entry.address());
         }
 
         if let Some(new_encoding) = try_get_encoding(name) {
@@ -233,7 +233,7 @@ pub fn parse_impl(elf: &[u8], check_version: bool) -> Result<Option<Table>, anyh
         .collect();
 
     Ok(Some(
-        Table::new(timestamp, map, bitflags, encoding, image_address_anchor)
+        Table::new(timestamp, map, bitflags, encoding, image_anchor_address)
             .map_err(anyhow::Error::msg)?,
     ))
 }
