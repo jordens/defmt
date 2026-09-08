@@ -161,8 +161,9 @@ pub struct Table {
     encoding: Encoding,
     #[serde(default)]
     image_address_anchor: Option<u64>,
+    // Derived from `entries` and rebuilt when a serialized table is loaded.
     #[serde(skip)]
-    address_lookup: HashMap<u16, usize>,
+    u16_to_address: HashMap<u16, usize>,
 }
 
 #[derive(Deserialize)]
@@ -194,7 +195,9 @@ impl<'de> Deserialize<'de> for Table {
 
 /// Reusable state for decoding frames from one loaded image.
 #[derive(Debug)]
-pub struct DecodeContext(u16);
+pub struct DecodeContext {
+    wire_index_bias: u16,
+}
 
 impl Table {
     fn new(
@@ -204,13 +207,13 @@ impl Table {
         encoding: Encoding,
         image_address_anchor: Option<u64>,
     ) -> Result<Self, String> {
-        let mut address_lookup = HashMap::with_capacity(entries.len());
+        let mut u16_to_address = HashMap::with_capacity(entries.len());
 
         for (&address, entry) in &entries {
-            let wire_index = address as u16;
-            if let Some(old_address) = address_lookup.insert(wire_index, address) {
+            let u16_address = address as u16;
+            if let Some(old_address) = u16_to_address.insert(u16_address, address) {
                 return Err(format!(
-                    "defmt wire index collision at 0x{wire_index:04x}: symbols `{}` and `{}`",
+                    "defmt address truncation collision at 0x{u16_address:04x}: symbols `{}` and `{}`",
                     entries[&old_address].raw_symbol, entry.raw_symbol,
                 ));
             }
@@ -222,7 +225,7 @@ impl Table {
             bitflags,
             encoding,
             image_address_anchor,
-            address_lookup,
+            u16_to_address,
         })
     }
 
@@ -294,24 +297,24 @@ impl Table {
         &'t self,
         bytes: &[u8],
     ) -> Result<(Frame<'t>, /* consumed: */ usize), DecodeError> {
-        self.decode_with_context(bytes, &DecodeContext(0))
+        self.decode_with_context(bytes, &DecodeContext { wire_index_bias: 0 })
     }
 
     /// Build reusable decoding state for the load bias of an image.
     ///
-    /// Table indices are symbol addresses in the parsed image. The current defmt
-    /// wire index is the low 16 bits of the corresponding loaded runtime symbol
-    /// address. `load_bias` is the runtime symbol address minus the same
-    /// symbol's image address.
+    /// Table entries are keyed by symbol addresses in the parsed image. The
+    /// current defmt wire index is the low 16 bits of the corresponding loaded
+    /// runtime symbol address. `load_bias` is the runtime symbol address minus
+    /// the same symbol's image address.
     ///
     /// Returns `None` if an entry would map to wire index zero, which is reserved
     /// as the format-sequence terminator.
     pub fn new_decode_context(&self, load_bias: u64) -> Option<DecodeContext> {
         let wire_index_bias = load_bias as u16;
         (!self
-            .address_lookup
+            .u16_to_address
             .contains_key(&wire_index_bias.wrapping_neg()))
-        .then_some(DecodeContext(wire_index_bias))
+        .then_some(DecodeContext { wire_index_bias })
     }
 
     /// Build reusable decoding state from the runtime address of the defmt anchor.
@@ -373,9 +376,8 @@ impl Table {
     }
 
     fn resolve_address(&self, context: &DecodeContext, wire_index: u16) -> Option<usize> {
-        self.address_lookup
-            .get(&wire_index.wrapping_sub(context.0))
-            .copied()
+        let u16_address = wire_index.wrapping_sub(context.wire_index_bias);
+        self.u16_to_address.get(&u16_address).copied()
     }
 
     pub fn new_stream_decoder(&self) -> Box<dyn StreamDecoder + Send + Sync + '_> {
