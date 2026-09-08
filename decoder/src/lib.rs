@@ -311,10 +311,14 @@ impl Table {
     /// as the format-sequence terminator.
     pub fn new_decode_context(&self, load_bias: u64) -> Option<DecodeContext> {
         let wire_index_bias = load_bias as u16;
-        (!self
+        if self
             .u16_to_address
-            .contains_key(&wire_index_bias.wrapping_neg()))
-        .then_some(DecodeContext { wire_index_bias })
+            .contains_key(&wire_index_bias.wrapping_neg())
+        {
+            None
+        } else {
+            Some(DecodeContext { wire_index_bias })
+        }
     }
 
     /// Build reusable decoding state from the runtime address of the defmt anchor.
@@ -330,8 +334,7 @@ impl Table {
         &self,
         runtime_anchor: u64,
     ) -> Option<DecodeContext> {
-        let image_address_anchor = self.image_address_anchor?;
-        self.new_decode_context(runtime_anchor.wrapping_sub(image_address_anchor))
+        self.new_decode_context(runtime_anchor.wrapping_sub(self.image_address_anchor?))
     }
 
     /// Decode the data sent by the device using a reusable decoding context.
