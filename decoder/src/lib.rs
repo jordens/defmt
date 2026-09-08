@@ -280,7 +280,7 @@ impl Table {
         self.decode_with_index(bytes, &DecodeIndex { entries: None })
     }
 
-    /// Build a reusable index for decoding frames from an image loaded with `load_bias`.
+    /// Build a reusable index look-up map given the load bias of an image.
     ///
     /// Table indices are ELF symbol addresses. The current defmt wire index is
     /// the low 16 bits of the corresponding loaded runtime symbol address.
@@ -292,7 +292,7 @@ impl Table {
         DecodeIndex::new(self, load_bias)
     }
 
-    /// Build a reusable index from the runtime address of the defmt anchor.
+    /// Build a reusable index look-up map given the runtime address of the defmt anchor.
     ///
     /// `runtime_anchor` is the runtime address returned by
     /// `defmt::runtime_anchor()` in the process that emitted the frames,
